@@ -23,16 +23,36 @@ var (
 body {
 	color: #00FF00;
 	background: #000000;
+	font-family: Sans-Serif;
 }
 
-#output {
+a:link, a:hover, a:active {
+	color: green;
+}
+
+a:visited {
+	color: #00FF00;
+}
+
+#title {
+	margin: 40px auto;
+}
+
+#center {
 	width: -moz-min-content; width: -webkit-min-content; width: min-content;
-	margin-left: auto;
-	margin-right: auto;
+	margin: 40px auto;
 }
 </style>
+<script>
+/* make some links */
+function urlize(elem) {
+	var upat = /((http|ftp|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?)/g;
+	var e = document.getElementById(elem);
+	e.innerHTML = e.innerHTML.replace(upat, '<a href="$1">$1</a>');
+}
+</script>
 </head>
-<body>
+<body onload="urlize('center');">
 `
 	footertpl = `
 </body>
@@ -40,9 +60,9 @@ body {
 `
 
 	statustpl = `
+<div id="center">
+<h1 id="title">alpha.offblast.org</h1>
 <div id="output">
-<h1>Hello, World!</h1>
-
 {{ range . }}
 <pre># {{.Cmd}}
 {{ range .Output }} {{ . }}
@@ -50,6 +70,7 @@ body {
 </pre>
 {{ end }}
 <pre>#^D</pre>
+</div>
 </div>
 `
 )
