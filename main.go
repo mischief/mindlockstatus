@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"math/rand"
 )
 
 var (
@@ -61,9 +62,12 @@ function urlize(elem) {
 
 	statustpl = `
 <div id="center">
-<h1 id="title">alpha.offblast.org</h1>
+<div id="title">
+	<h1>{{.Hostname}}</h1>
+	<h2>{{.Quote}}</h2>
+</div>
 <div id="output">
-{{ range . }}
+{{ range .Outputs }}
 <pre># {{.Cmd}}
 {{ range .Output }} {{ . }}
 {{ end }}
@@ -73,6 +77,24 @@ function urlize(elem) {
 </div>
 </div>
 `
+
+	cmds = []string{
+		"cat /etc/motd",
+		`who | awk '{ printf "%-10s    %s  %s %2s %s\n", $1, $2, $3, $4, $5 }'`,
+		"uptime",
+		"downtimes",
+		"df -h",
+	}
+
+	quotes = []string{
+		"i need something stronger.",
+		"for more enjoyment and greater efficiency, consumption is being standardized. we are sorry ...",
+		"everything will be all right. you are in my hands. i am here to protect you. you have nowhere to go. you have nowhere to go.",
+		"you have nowhere to go. i am here to protect you.",
+		"how shall the new environment be programmed? it all happened so slowly that most men failed to realize that anything had happened at all.",
+		"take four red capsules. in 10 minutes take two more. help is on the way.",
+		"control center 626 holds no responsibility... for error in mindlock.",
+	}
 )
 
 type CommandOutput struct {
@@ -100,8 +122,15 @@ func RunSh(cmd string) CommandOutput {
 	return CommandOutput{cmd, out}
 }
 
+type Status struct {
+	Hostname string
+	Quote string
+	Outputs []CommandOutput
+}
+
 func status(w http.ResponseWriter, r *http.Request) {
 	var err error
+	var statdat Status
 	var outputs []CommandOutput
 	var hdr, stat, footer *template.Template
 
@@ -113,13 +142,12 @@ func status(w http.ResponseWriter, r *http.Request) {
 
 	wr := bufio.NewWriter(w)
 
-	cmds := []string{
-		"cat /etc/motd",
-		`who | awk '{ printf "%-10s    %s  %s %s %s\n", $1, $2, $3, $4, $5, $6 }'`,
-		"uptime",
-		"downtimes",
-		"df -h",
+	statdat.Hostname = r.Host
+	if statdat.Hostname == "" {
+		statdat.Hostname, _ = os.Hostname() 
 	}
+
+	statdat.Quote = quotes[rand.Intn(len(quotes))]
 
 	if hdr, err = template.New("header").Parse(headertpl); err != nil {
 		goto error
@@ -131,9 +159,11 @@ func status(w http.ResponseWriter, r *http.Request) {
 		outputs = append(outputs, RunSh(c))
 	}
 
+	statdat.Outputs = outputs
+
 	if stat, err = template.New("status").Parse(statustpl); err != nil {
 		goto error
-	} else if err = stat.Execute(wr, outputs); err != nil {
+	} else if err = stat.Execute(wr, statdat); err != nil {
 		goto error
 	}
 
