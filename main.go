@@ -19,7 +19,7 @@ var (
 <!DOCTYPE html>
 <html>
 <head>
-<title>alpha status</title>
+<title>{{ .Hostname }}</title>
 <style>
 body {
 	color: #00FF00;
@@ -122,6 +122,10 @@ func RunSh(cmd string) CommandOutput {
 	return CommandOutput{cmd, out}
 }
 
+type Header struct {
+	Hostname string
+}
+
 type Status struct {
 	Hostname string
 	Quote string
@@ -130,6 +134,7 @@ type Status struct {
 
 func status(w http.ResponseWriter, r *http.Request) {
 	var err error
+	var headdat Header
 	var statdat Status
 	var outputs []CommandOutput
 	var hdr, stat, footer *template.Template
@@ -147,11 +152,13 @@ func status(w http.ResponseWriter, r *http.Request) {
 		statdat.Hostname, _ = os.Hostname() 
 	}
 
+	headdat.Hostname = statdat.Hostname
+
 	statdat.Quote = quotes[rand.Intn(len(quotes))]
 
 	if hdr, err = template.New("header").Parse(headertpl); err != nil {
 		goto error
-	} else if err = hdr.Execute(wr, nil); err != nil {
+	} else if err = hdr.Execute(wr, headdat); err != nil {
 		goto error
 	}
 
