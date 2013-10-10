@@ -5,13 +5,13 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/fcgi"
 	"os"
 	"os/exec"
 	"strings"
-	"math/rand"
 )
 
 var (
@@ -128,8 +128,8 @@ type Header struct {
 
 type Status struct {
 	Hostname string
-	Quote string
-	Outputs []CommandOutput
+	Quote    string
+	Outputs  []CommandOutput
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +149,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 
 	statdat.Hostname = r.Host
 	if statdat.Hostname == "" {
-		statdat.Hostname, _ = os.Hostname() 
+		statdat.Hostname, _ = os.Hostname()
 	}
 
 	headdat.Hostname = statdat.Hostname
@@ -190,22 +190,22 @@ error:
 }
 
 func main() {
-  sock := "/tmp/mindlockstatus.sock"
-  os.Remove(sock)
+	sock := "/tmp/mindlockstatus.sock"
+	os.Remove(sock)
 	listener, err := net.Listen("unix", sock)
-  if err != nil {
-    fmt.Fprintf(os.Stderr, "can't listen on %s: %s", sock, err)
-    os.Exit(1)
-  }
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "can't listen on %s: %s", sock, err)
+		os.Exit(1)
+	}
 
-  // set the right mode
-  if err := os.Chmod(sock, os.FileMode(0750)); err != nil {
-    fmt.Fprintf(os.Stderr, "can't chmod %s: %s", sock, err)
-    os.Exit(1)
-  }
+	// set the right mode
+	if err := os.Chmod(sock, os.FileMode(0750)); err != nil {
+		fmt.Fprintf(os.Stderr, "can't chmod %s: %s", sock, err)
+		os.Exit(1)
+	}
 
 	http.HandleFunc("/", status)
 	if err := fcgi.Serve(listener, nil); err != nil {
-    fmt.Fprintf(os.Stderr, "failed to serve: %s", err)
-  }
+		fmt.Fprintf(os.Stderr, "failed to serve: %s", err)
+	}
 }
