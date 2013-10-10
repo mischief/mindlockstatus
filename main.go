@@ -190,7 +190,7 @@ error:
 }
 
 func main() {
-	listener, _ := net.Listen("tcp", "127.0.0.1:9001")
+	listener, _ := net.Listen("unix", "/tmp/mindlockstatus.sock")
 	http.HandleFunc("/", status)
 	fcgi.Serve(listener, nil)
 }
