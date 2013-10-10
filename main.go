@@ -190,7 +190,22 @@ error:
 }
 
 func main() {
-	listener, _ := net.Listen("unix", "/tmp/mindlockstatus.sock")
+  sock := "/tmp/mindlockstatus.sock"
+  os.Remove(sock)
+	listener, err := net.Listen("unix", sock)
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "can't listen on %s: %s", sock, err)
+    os.Exit(1)
+  }
+
+  // set the right mode
+  if err := os.Chmod(sock, os.FileMode(0750)); err != nil {
+    fmt.Fprintf(os.Stderr, "can't chmod %s: %s", sock, err)
+    os.Exit(1)
+  }
+
 	http.HandleFunc("/", status)
-	fcgi.Serve(listener, nil)
+	if err := fcgi.Serve(listener, nil); err != nil {
+    fmt.Fprintf(os.Stderr, "failed to serve: %s", err)
+  }
 }
