@@ -61,12 +61,12 @@ function urlize(elem) {
 `
 
 	statustpl = `
-<div id="center">
-<div id="title">
+<main id="center">
+<header id="title">
 	<h1>{{.Hostname}}</h1>
 	<h2>{{.Quote}}</h2>
-</div>
-<div id="output">
+</header>
+<section id="output">
 {{ range .Outputs }}
 <pre># {{.Cmd}}
 {{ range .Output }} {{ . }}
@@ -74,8 +74,8 @@ function urlize(elem) {
 </pre>
 {{ end }}
 <pre>#^D</pre>
-</div>
-</div>
+</section>
+</main>
 `
 
 	cmds = []string{
